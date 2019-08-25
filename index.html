@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<head>
+  <title>idicon</title>
+  <script type="text/javascript" src="idicon.js"></script>
+  <link rel="stylesheet" href="idicon.css" />
+</head>
+<body>
+  <div class="toolbar">
+    <input type="text" value="-2044886870" id="val" size="100">
+    <button  id="rand">Random</button>
+  </div>
+  <div style="display: flex">
+    <div class="icon-container">
+      <div>
+        <canvas id="output" class="stack" width="1920" height="1920"></canvas>
+        <canvas class="stack copy" width="128" height="128"></canvas>
+        <canvas class="stack copy" width="64" height="64"></canvas>
+        <canvas class="stack copy" width="32" height="32"></canvas>
+      </div>
+      <div>
+        <canvas class="stack copy rounded" width="256" height="256"></canvas>
+        <canvas class="stack copy rounded" width="128" height="128"></canvas>
+        <canvas class="stack copy rounded" width="64" height="64"></canvas>
+        <canvas class="stack copy rounded" width="32" height="32"></canvas>
+      </div>
+      <div class="subtiles">
+      </div>
+    </div>
+    <pre id="info">
+Hash: <span id="iHash"></span>
+
+Colors: <span id="iCol0"></span>
+        <span id="iCol1"></span>
+        <span id="iCol2"></span>
+        <span id="iCol3"></span>
+
+Patches: <span id="iTile0"></span>
+         <span id="iTile1"></span>
+         <span id="iTile2"></span>
+         <span id="iTile3"></span>
+         <span id="iTile4"></span>
+    </pre>
+  </div>
+
+  <script>
+    const _qs = q => document.querySelector(q);
+    const _qsAll = q => document.querySelectorAll(q);
+
+    var val = _qs('#val');
+    const stackCanvas = _qs('canvas#output');
+    const size = stackCanvas.width;
+
+    const setRandom = () => val.value = Math.random().toString(16).substring(2);
+
+    const doRender = () => {
+        var data = val.value;
+        var dataBytes =  new TextEncoder().encode(data);
+        crypto.subtle.digest('SHA-256', dataBytes).then(hab => {
+            const hash = new Uint32Array(hab);
+
+            _qs('#iHash').innerText = Array.from(hash)
+              .map(n => n.toString(16).padStart(2, '0'))
+              .join('');
+
+            const colors = get_colors(hash);
+            colors.forEach((c, i) => _qs(`#iCol${i}`).innerHTML = `<b style="color: #${c}">&#x25a0;</b>#${c}`)
+
+            render_idicon_gradients(stackCanvas, size, colors);
+
+            render_idicon_stack(stackCanvas, hash, size, PAll, (opts, i) => {
+               _qs(`#iTile${i}`).innerHTML = `${opts_to_string(opts)} (${hash[i].toString(16)})`;
+            });
+
+
+            _qsAll('canvas.stack.copy').forEach(c => c.getContext('2d').drawImage(stackCanvas, 0, 0, c.width, c.height));
+        })
+    }
+
+    val.addEventListener('keyup', function(){
+        doRender();
+    });
+
+    _qs('#rand').addEventListener('click', function(){
+        setRandom();
+        doRender();
+    });
+
+    const query = window.location.search;
+    if(query.length < 2) {
+      setRandom();
+    } else {
+      val.value = query.substr(1);
+    }
+
+    for(let i=0; i<5; i++) {
+        const subtile = document.createElement('canvas');
+        subtile.height = size;
+        subtile.width = size;
+        subtile.className = 'subtile';
+        console.log(subtile);
+        _qs('.subtiles').appendChild(subtile);
+    }
+
+    doRender();
+  </script>
+  </body>
+</html>

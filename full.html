@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<head>
+  <title>idicon</title>
+  <script type="text/javascript" src="DitheredRadialGradientRGB.js"></script>
+  <script type="text/javascript" src="idicon.js"></script>
+
+  <link rel="stylesheet" href="idicon.css" />
+  <style> 
+#output {
+    position: absolute;
+    left:0;
+    right:0;
+    width: 100vw;
+    top: calc(50vh - 50vw);
+    bottom: calc(50vh - 50vw);
+    padding:0;
+}
+    body, html {width: 100vw; height: 100vh; overflow: hidden;}
+  </style>
+</head>
+<body>
+        <canvas id="output" class="stack"></canvas>
+  <div class="toolbar" style="display:none">
+    <input type="text" value="-2044886870" id="val" size="100">
+    <button  id="rand">Random</button>
+  </div>
+  <div style="display: none;">
+    <pre id="info">
+Hash: <span id="iHash"></span>
+
+Colors: <span id="iCol0"></span>
+        <span id="iCol1"></span>
+        <span id="iCol2"></span>
+        <span id="iCol3"></span>
+
+Patches: <span id="iTile0"></span>
+         <span id="iTile1"></span>
+         <span id="iTile2"></span>
+         <span id="iTile3"></span>
+         <span id="iTile4"></span>
+    </pre>
+  </div>
+
+  <script>
+    const _qs = q => document.querySelector(q);
+    const _qsAll = q => document.querySelectorAll(q);
+
+    var val = _qs('#val');
+    const stackCanvas = _qs('canvas#output');
+    stackCanvas.width = stackCanvas.clientWidth;
+    stackCanvas.height = stackCanvas.clientWidth;
+    const size = stackCanvas.clientWidth;
+
+    const setRandom = () => val.value = Math.random().toString(16).substring(2);
+
+    const doRender = () => {
+        var data = val.value;
+        var dataBytes =  new TextEncoder().encode(data);
+        crypto.subtle.digest('SHA-256', dataBytes).then(hab => {
+            const hash = new Uint32Array(hab);
+
+            _qs('#iHash').innerText = Array.from(hash)
+              .map(n => n.toString(16).padStart(2, '0'))
+              .join('');
+
+            const colors = get_colors(hash);
+            colors.forEach((c, i) => _qs(`#iCol${i}`).innerHTML = `<b style="color: #${c}">&#x25a0;</b>#${c}`)
+
+            render_idicon_gradients(stackCanvas, size, colors);
+
+//return;
+            render_idicon_stack(stackCanvas, hash, size, PAll, (opts, i) => {
+                console.log(`${opts_to_string(opts)} (${hash[i].toString(16)})`);
+            });
+
+        })
+    }
+
+    val.addEventListener('keyup', function(){
+        doRender();
+    });
+
+    stackCanvas.addEventListener('click', function(){
+        setRandom();
+        doRender();
+    });
+
+    const query = window.location.search;
+    if(query.length < 2) {
+      setRandom();
+    } else {
+      val.value = query.substr(1);
+    }
+
+    doRender();
+  </script>
+  </body>
+</html>

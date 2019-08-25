@@ -1,0 +1,42 @@
+.icon-container {
+  position: relative;
+  flex: 1;
+}
+
+canvas.subtile {
+  display: inline-block;
+}
+
+canvas.rounded {
+  border-radius: 50%;
+}
+
+canvas.stack {
+  padding: 10px;
+  display: inline-block;
+  vertical-align: middle;
+}
+.subtiles {
+    display: none;
+}
+
+#info {
+  flex: 1;
+  color: #222;
+  background: #eee;
+  padding: 10px;
+}
+#info span > b {
+  font-size: 2.5em;
+  line-height: 0.2em;
+  vertical-align: middle;
+}
+
+.toolbar {
+    display:flex;
+}
+
+.toolbar input {
+    flex-grow: 1;
+    font-size: 22px
+}
